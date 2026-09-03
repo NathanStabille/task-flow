@@ -1,7 +1,7 @@
 import { CalendarDays, CheckCircle2, Edit3, FolderKanban, ListTodo, UserRound } from 'lucide-react';
 import { useProjectDetails } from '../../hooks/use-project-details';
 import type { Project } from '../../types';
-import { formatShortDate } from '../../utils/formatters';
+import { formatDateOnly, formatShortDate } from '../../utils/formatters';
 import { Avatar } from '../ui/Avatar';
 import { Modal } from '../ui/Modal';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -58,7 +58,9 @@ export function ProjectDetailsModal({ projectId, onClose, onEdit }: ProjectDetai
                   </span>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <h3 className="text-lg font-black tracking-tight text-slate-950">{project.name}</h3>
+                      <h3 className="text-lg font-black tracking-tight text-slate-950">
+                        {project.name}
+                      </h3>
                       <StatusBadge value={project.status} />
                     </div>
                     <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-500">
@@ -118,7 +120,9 @@ export function ProjectDetailsModal({ projectId, onClose, onEdit }: ProjectDetai
               {project.tasks.length === 0 ? (
                 <div className="mt-3 rounded-xl border border-dashed border-slate-200 bg-white py-8 text-center">
                   <ListTodo className="mx-auto text-slate-300" size={22} />
-                  <p className="mt-2 text-xs font-medium text-slate-500">Nenhuma tarefa vinculada.</p>
+                  <p className="mt-2 text-xs font-medium text-slate-500">
+                    Nenhuma tarefa vinculada.
+                  </p>
                 </div>
               ) : (
                 <div className="mt-3 space-y-2">
@@ -138,7 +142,11 @@ export function ProjectDetailsModal({ projectId, onClose, onEdit }: ProjectDetai
                         <div className="flex shrink-0 items-center gap-4 text-[10px] font-medium text-slate-400">
                           <span className="flex items-center gap-1.5">
                             {task.assignee ? (
-                              <Avatar name={task.assignee.name} initials={task.assignee.avatar} size="sm" />
+                              <Avatar
+                                name={task.assignee.name}
+                                initials={task.assignee.avatar}
+                                size="sm"
+                              />
                             ) : (
                               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100">
                                 <UserRound size={12} />
@@ -148,7 +156,7 @@ export function ProjectDetailsModal({ projectId, onClose, onEdit }: ProjectDetai
                           </span>
                           <span className="flex items-center gap-1.5">
                             <CalendarDays size={12} />
-                            {task.dueDate ? formatShortDate(task.dueDate) : 'Sem prazo'}
+                            {task.dueDate ? formatDateOnly(task.dueDate) : 'Sem prazo'}
                           </span>
                         </div>
                       </div>
@@ -163,4 +171,3 @@ export function ProjectDetailsModal({ projectId, onClose, onEdit }: ProjectDetai
     </Modal>
   );
 }
-

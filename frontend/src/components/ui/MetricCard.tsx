@@ -32,4 +32,3 @@ export function MetricCard({ label, value, icon: Icon, variant, detail }: Metric
     </article>
   );
 }
-

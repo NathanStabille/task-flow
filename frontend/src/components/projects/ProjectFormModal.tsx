@@ -53,7 +53,10 @@ export function ProjectFormModal({ project, onClose, onSubmit }: ProjectFormModa
       <form onSubmit={handleSubmit}>
         <div className="space-y-5 px-5 py-5 sm:px-6">
           {error && (
-            <div role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700">
+            <div
+              role="alert"
+              className="rounded-xl bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700"
+            >
               {error}
             </div>
           )}
@@ -125,4 +128,3 @@ export function ProjectFormModal({ project, onClose, onSubmit }: ProjectFormModa
     </Modal>
   );
 }
-

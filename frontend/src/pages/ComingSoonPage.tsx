@@ -1,13 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, History, ListTodo } from 'lucide-react';
+import { ArrowLeft, History } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const pageContent: Record<string, { title: string; description: string; icon: LucideIcon }> = {
-  '/tarefas': {
-    title: 'Gestão de tarefas',
-    description: 'A lista, os filtros e o Kanban entram após o CRUD de projetos.',
-    icon: ListTodo,
-  },
   '/atividades': {
     title: 'Histórico de atividades',
     description: 'O dashboard já exibe as atividades reais mais recentes da API.',
@@ -17,7 +12,7 @@ const pageContent: Record<string, { title: string; description: string; icon: Lu
 
 export function ComingSoonPage() {
   const location = useLocation();
-  const content = pageContent[location.pathname] ?? pageContent['/tarefas'];
+  const content = pageContent[location.pathname] ?? pageContent['/atividades'];
   const Icon = content.icon;
 
   return (

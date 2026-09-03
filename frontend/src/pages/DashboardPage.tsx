@@ -16,7 +16,7 @@ import { SectionCard } from '../components/ui/SectionCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { useDashboard } from '../hooks/use-dashboard';
 import type { Activity, Project, Task, TaskStatus } from '../types';
-import { formatRelativeTime, formatToday } from '../utils/formatters';
+import { formatRelativeTime, formatToday, isDateOverdue } from '../utils/formatters';
 
 function DashboardSkeleton() {
   return (
@@ -45,7 +45,9 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
           <CircleAlert size={24} />
         </span>
-        <h2 className="mt-5 text-lg font-bold text-slate-900">Não foi possível carregar os dados</h2>
+        <h2 className="mt-5 text-lg font-bold text-slate-900">
+          Não foi possível carregar os dados
+        </h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{message}</p>
         <button
           type="button"
@@ -83,7 +85,9 @@ function RecentProjects({ projects, tasks }: { projects: Project[]; tasks: Task[
           {projects.slice(0, 3).map((project, index) => {
             const projectTasks = tasks.filter((task) => task.projectId === project.id);
             const completed = projectTasks.filter((task) => task.status === 'DONE').length;
-            const progress = projectTasks.length ? Math.round((completed / projectTasks.length) * 100) : 0;
+            const progress = projectTasks.length
+              ? Math.round((completed / projectTasks.length) * 100)
+              : 0;
 
             return (
               <div key={project.id} className="px-5 py-4 sm:px-6">
@@ -97,7 +101,9 @@ function RecentProjects({ projects, tasks }: { projects: Project[]; tasks: Task[
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-slate-850">{project.name}</p>
-                        <p className="mt-1 line-clamp-1 text-xs text-slate-500">{project.description}</p>
+                        <p className="mt-1 line-clamp-1 text-xs text-slate-500">
+                          {project.description}
+                        </p>
                       </div>
                       <StatusBadge value={project.status} />
                     </div>
@@ -152,8 +158,12 @@ function OverallProgress({ tasks }: { tasks: Task[] }) {
           >
             <div className="grid h-20 w-20 place-items-center rounded-full bg-white text-center">
               <div>
-                <p className="text-2xl font-black tracking-tight text-slate-950">{completionRate}%</p>
-                <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">concluído</p>
+                <p className="text-2xl font-black tracking-tight text-slate-950">
+                  {completionRate}%
+                </p>
+                <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
+                  concluído
+                </p>
               </div>
             </div>
           </div>
@@ -182,7 +192,8 @@ function OverallProgress({ tasks }: { tasks: Task[] }) {
 
 function activityIcon(activity: Activity) {
   const text = activity.description.toLocaleLowerCase('pt-BR');
-  if (text.includes('conclu')) return { Icon: CheckCircle2, style: 'bg-emerald-50 text-emerald-600' };
+  if (text.includes('conclu'))
+    return { Icon: CheckCircle2, style: 'bg-emerald-50 text-emerald-600' };
   if (text.includes('responsável')) {
     return { Icon: UserRoundCheck, style: 'bg-blue-50 text-blue-600' };
   }
@@ -192,9 +203,14 @@ function activityIcon(activity: Activity) {
 
 function RecentActivities({ activities }: { activities: Activity[] }) {
   return (
-    <SectionCard title="Atividades recentes" description="Últimas alterações registradas no workspace.">
+    <SectionCard
+      title="Atividades recentes"
+      description="Últimas alterações registradas no workspace."
+    >
       {activities.length === 0 ? (
-        <p className="px-6 py-12 text-center text-sm text-slate-500">Nenhuma atividade registrada.</p>
+        <p className="px-6 py-12 text-center text-sm text-slate-500">
+          Nenhuma atividade registrada.
+        </p>
       ) : (
         <div className="px-5 py-2 sm:px-6">
           {activities.map((activity, index) => {
@@ -210,7 +226,9 @@ function RecentActivities({ activities }: { activities: Activity[] }) {
                   <Icon size={14} />
                 </span>
                 <div className="min-w-0 pt-0.5">
-                  <p className="text-xs font-medium leading-5 text-slate-700">{activity.description}</p>
+                  <p className="text-xs font-medium leading-5 text-slate-700">
+                    {activity.description}
+                  </p>
                   <p className="mt-0.5 text-[10px] font-medium text-slate-400">
                     {formatRelativeTime(activity.createdAt)}
                   </p>
@@ -228,12 +246,13 @@ export function DashboardPage() {
   const { data, isLoading, error, reload } = useDashboard();
 
   if (isLoading) return <DashboardSkeleton />;
-  if (error || !data) return <ErrorState message={error ?? 'Dados indisponíveis.'} onRetry={reload} />;
+  if (error || !data)
+    return <ErrorState message={error ?? 'Dados indisponíveis.'} onRetry={reload} />;
 
   const inProgress = data.tasks.filter((task) => task.status === 'IN_PROGRESS').length;
   const completed = data.tasks.filter((task) => task.status === 'DONE').length;
   const overdue = data.tasks.filter(
-    (task) => task.status !== 'DONE' && task.dueDate && new Date(task.dueDate) < new Date(),
+    (task) => task.status !== 'DONE' && task.dueDate && isDateOverdue(task.dueDate),
   ).length;
 
   return (
@@ -244,7 +263,9 @@ export function DashboardPage() {
           <h2 className="mt-1.5 text-2xl font-black tracking-tight text-slate-950 sm:text-[28px]">
             Bom dia, Nathan <span aria-hidden="true">👋</span>
           </h2>
-          <p className="mt-1.5 text-sm text-slate-500">Aqui está o resumo dos seus projetos hoje.</p>
+          <p className="mt-1.5 text-sm text-slate-500">
+            Aqui está o resumo dos seus projetos hoje.
+          </p>
         </div>
         <button
           type="button"
@@ -304,4 +325,3 @@ export function DashboardPage() {
     </div>
   );
 }
-

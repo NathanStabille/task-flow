@@ -25,7 +25,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ErrorResponse;
-    throw new ApiError(error.message || 'Não foi possível concluir a solicitação.', response.status);
+    throw new ApiError(
+      error.message || 'Não foi possível concluir a solicitação.',
+      response.status,
+    );
   }
 
   if (response.status === 204) return undefined as T;
@@ -40,4 +43,3 @@ export const api = {
     request<T>(path, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (path: string) => request<void>(path, { method: 'DELETE' }),
 };
-

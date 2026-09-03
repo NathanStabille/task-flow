@@ -32,4 +32,3 @@ export function useProjectDetails(projectId: number) {
 
   return { project, isLoading, error };
 }
-

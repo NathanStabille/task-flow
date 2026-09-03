@@ -37,4 +37,3 @@ export function StatusBadge({ value }: StatusBadgeProps) {
     </span>
   );
 }
-

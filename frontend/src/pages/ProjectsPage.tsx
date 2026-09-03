@@ -207,7 +207,8 @@ export function ProjectsPage() {
       {!isLoading && !error && filteredProjects.length > 0 && (
         <>
           <p className="text-xs font-medium text-slate-400">
-            {filteredProjects.length} {filteredProjects.length === 1 ? 'projeto encontrado' : 'projetos encontrados'}
+            {filteredProjects.length}{' '}
+            {filteredProjects.length === 1 ? 'projeto encontrado' : 'projetos encontrados'}
           </p>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredProjects.map((project, index) => (

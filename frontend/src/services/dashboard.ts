@@ -12,4 +12,3 @@ export async function getDashboardData(signal?: AbortSignal): Promise<DashboardD
 
   return { projects, tasks, activities };
 }
-

@@ -22,6 +22,8 @@ export interface Project {
   };
 }
 
+export type ProjectReference = Omit<Project, '_count'>;
+
 export interface Task {
   id: number;
   title: string;
@@ -33,7 +35,7 @@ export interface Task {
   assigneeId: number | null;
   createdAt: string;
   updatedAt: string;
-  project: Project;
+  project: ProjectReference;
   assignee: User | null;
 }
 
@@ -48,6 +50,18 @@ export interface ProjectInput {
   description: string;
   status: ProjectStatus;
 }
+
+export interface TaskInput {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate: string | null;
+  projectId: number;
+  assigneeId: number | null;
+}
+
+export type TaskUpdateInput = Partial<TaskInput>;
 
 export interface Activity {
   id: number;

@@ -3,6 +3,12 @@ const shortDateFormatter = new Intl.DateTimeFormat('pt-BR', {
   month: 'short',
 });
 
+const dateOnlyFormatter = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: 'short',
+  timeZone: 'UTC',
+});
+
 const longDateFormatter = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long',
   day: 'numeric',
@@ -13,6 +19,19 @@ const relativeTimeFormatter = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'a
 
 export function formatShortDate(value: string): string {
   return shortDateFormatter.format(new Date(value)).replace('.', '');
+}
+
+export function formatDateOnly(value: string): string {
+  return dateOnlyFormatter.format(new Date(value)).replace('.', '');
+}
+
+export function isDateOverdue(value: string): boolean {
+  const dueDate = new Date(value);
+  const now = new Date();
+  const dueDay = Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return dueDay < today;
 }
 
 export function formatToday(): string {
@@ -31,4 +50,3 @@ export function formatRelativeTime(value: string): string {
   if (Math.abs(elapsedHours) < 24) return relativeTimeFormatter.format(elapsedHours, 'hour');
   return relativeTimeFormatter.format(elapsedDays, 'day');
 }
-

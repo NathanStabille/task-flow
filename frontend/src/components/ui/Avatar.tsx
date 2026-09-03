@@ -23,4 +23,3 @@ export function Avatar({ name, initials, size = 'md' }: AvatarProps) {
     </span>
   );
 }
-

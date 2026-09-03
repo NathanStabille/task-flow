@@ -1,6 +1,7 @@
 import {
   Bell,
   ChevronDown,
+  Columns3,
   FolderKanban,
   History,
   LayoutDashboard,
@@ -16,6 +17,7 @@ const navigation = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },
   { label: 'Projetos', path: '/projetos', icon: FolderKanban },
   { label: 'Tarefas', path: '/tarefas', icon: ListTodo },
+  { label: 'Kanban', path: '/kanban', icon: Columns3 },
   { label: 'Atividades', path: '/atividades', icon: History },
 ];
 
@@ -23,6 +25,7 @@ const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
   '/projetos': 'Projetos',
   '/tarefas': 'Tarefas',
+  '/kanban': 'Kanban',
   '/atividades': 'Atividades',
 };
 
@@ -65,7 +68,9 @@ function Sidebar({ onNavigate }: SidebarProps) {
                 <Icon
                   aria-hidden="true"
                   size={18}
-                  className={isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}
+                  className={
+                    isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'
+                  }
                 />
                 {label}
               </>
@@ -156,4 +161,3 @@ export function AppShell() {
     </div>
   );
 }
-
