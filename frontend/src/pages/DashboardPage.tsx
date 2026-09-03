@@ -2,15 +2,14 @@ import {
   ArrowRight,
   CheckCircle2,
   CircleAlert,
-  CircleDot,
   Clock3,
   FolderKanban,
   ListChecks,
   RefreshCw,
   TrendingUp,
-  UserRoundCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ActivityIcon } from '../components/activities/ActivityIcon';
 import { MetricCard } from '../components/ui/MetricCard';
 import { SectionCard } from '../components/ui/SectionCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -190,17 +189,6 @@ function OverallProgress({ tasks }: { tasks: Task[] }) {
   );
 }
 
-function activityIcon(activity: Activity) {
-  const text = activity.description.toLocaleLowerCase('pt-BR');
-  if (text.includes('conclu'))
-    return { Icon: CheckCircle2, style: 'bg-emerald-50 text-emerald-600' };
-  if (text.includes('responsável')) {
-    return { Icon: UserRoundCheck, style: 'bg-blue-50 text-blue-600' };
-  }
-  if (text.includes('movida')) return { Icon: Clock3, style: 'bg-amber-50 text-amber-600' };
-  return { Icon: CircleDot, style: 'bg-indigo-50 text-indigo-600' };
-}
-
 function RecentActivities({ activities }: { activities: Activity[] }) {
   return (
     <SectionCard
@@ -214,17 +202,12 @@ function RecentActivities({ activities }: { activities: Activity[] }) {
       ) : (
         <div className="px-5 py-2 sm:px-6">
           {activities.map((activity, index) => {
-            const { Icon, style } = activityIcon(activity);
             return (
               <div key={activity.id} className="relative flex gap-3 py-3.5">
                 {index < activities.length - 1 && (
                   <span className="absolute left-[15px] top-10 h-[calc(100%-1.5rem)] w-px bg-slate-100" />
                 )}
-                <span
-                  className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style}`}
-                >
-                  <Icon size={14} />
-                </span>
+                <ActivityIcon description={activity.description} />
                 <div className="min-w-0 pt-0.5">
                   <p className="text-xs font-medium leading-5 text-slate-700">
                     {activity.description}
