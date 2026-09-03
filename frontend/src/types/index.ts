@@ -37,6 +37,18 @@ export interface Task {
   assignee: User | null;
 }
 
+export type ProjectTask = Omit<Task, 'project'>;
+
+export interface ProjectDetails extends Project {
+  tasks: ProjectTask[];
+}
+
+export interface ProjectInput {
+  name: string;
+  description: string;
+  status: ProjectStatus;
+}
+
 export interface Activity {
   id: number;
   description: string;
@@ -48,4 +60,3 @@ export interface DashboardData {
   tasks: Task[];
   activities: Activity[];
 }
-

@@ -1,13 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, FolderKanban, History, ListTodo } from 'lucide-react';
+import { ArrowLeft, History, ListTodo } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const pageContent: Record<string, { title: string; description: string; icon: LucideIcon }> = {
-  '/projetos': {
-    title: 'Gestão de projetos',
-    description: 'A listagem e os formulários de projetos entram na próxima etapa.',
-    icon: FolderKanban,
-  },
   '/tarefas': {
     title: 'Gestão de tarefas',
     description: 'A lista, os filtros e o Kanban entram após o CRUD de projetos.',
@@ -22,7 +17,7 @@ const pageContent: Record<string, { title: string; description: string; icon: Lu
 
 export function ComingSoonPage() {
   const location = useLocation();
-  const content = pageContent[location.pathname] ?? pageContent['/projetos'];
+  const content = pageContent[location.pathname] ?? pageContent['/tarefas'];
   const Icon = content.icon;
 
   return (
