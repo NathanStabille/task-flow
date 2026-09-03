@@ -11,7 +11,9 @@
     "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
+    "db:prepare": "tsx prisma/prepare-database.ts",
+    "db:migrate": "npm run db:prepare && prisma migrate dev",
+    "db:deploy": "npm run db:prepare && prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio"
   },

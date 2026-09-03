@@ -1,0 +1,284 @@
+# TaskFlow
+
+TaskFlow é uma aplicação full-stack de gerenciamento de projetos e tarefas, criada como um MVP para praticar e demonstrar uma arquitetura web com frontend e backend independentes.
+
+A aplicação permite acompanhar indicadores, gerenciar projetos e tarefas, organizar o trabalho em um quadro Kanban e consultar um histórico automático das principais alterações.
+
+## Objetivo
+
+O projeto foi desenvolvido para consolidar conhecimentos de desenvolvimento full-stack, especialmente na construção de uma API REST com Node.js e na integração entre uma interface React e um banco de dados relacional.
+
+O escopo foi mantido intencionalmente pequeno: entregar um sistema funcional, organizado, fácil de executar e simples de explicar.
+
+## Arquitetura
+
+```text
+React + TypeScript
+        ↓ HTTP/JSON
+REST API com Node.js + Express
+        ↓
+Prisma ORM
+        ↓
+SQLite
+```
+
+O frontend e o backend são aplicações separadas. O React acessa os endpoints da API por meio de uma camada de serviços baseada em `fetch`. No backend, as rotas direcionam as requisições aos controllers, que validam os dados e utilizam o Prisma para persistir as alterações.
+
+```text
+Frontend → Route → Controller → Prisma → SQLite
+```
+
+## Funcionalidades
+
+- Dashboard com indicadores, projetos recentes, progresso geral e atividades recentes.
+- CRUD completo de projetos.
+- CRUD completo de tarefas.
+- Filtros por status, prioridade, projeto e responsável.
+- Associação de usuários fictícios às tarefas.
+- Quadro Kanban com alteração de status entre `TODO`, `IN_PROGRESS` e `DONE`.
+- Registro automático de criação, edição, exclusão, atribuição e mudança de status.
+- Histórico de atividades com busca, categorias e filtro por período.
+- Estados de carregamento, erro, lista vazia e confirmação de exclusão.
+- Interface responsiva para desktop e dispositivos móveis.
+
+## Tecnologias
+
+### Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Lucide React
+- ESLint e Prettier
+
+### Backend
+
+- Node.js
+- Express
+- TypeScript
+- Prisma ORM
+- SQLite
+- CORS e dotenv
+
+## Estrutura do projeto
+
+```text
+task-flow/
+├── backend/
+│   ├── prisma/
+│   │   ├── migrations/       # Histórico de alterações do banco
+│   │   ├── schema.prisma     # Modelos e relacionamentos
+│   │   └── seed.ts           # Dados iniciais para demonstração
+│   └── src/
+│       ├── controllers/      # Validação, regras e acesso ao Prisma
+│       ├── middleware/       # Tratamento de erros e rotas inexistentes
+│       ├── prisma/           # Instância compartilhada do Prisma Client
+│       ├── routes/           # Definição dos endpoints da API
+│       ├── types/            # Tipos do domínio
+│       ├── utils/            # Validação e erros HTTP
+│       ├── app.ts            # Configuração do Express
+│       └── server.ts         # Inicialização do servidor
+├── frontend/
+│   └── src/
+│       ├── components/       # Componentes de interface por domínio
+│       ├── hooks/            # Carregamento e estado das páginas
+│       ├── pages/            # Páginas da aplicação
+│       ├── services/         # Comunicação com a API REST
+│       ├── types/            # Contratos TypeScript do frontend
+│       └── utils/            # Formatação de datas e valores
+└── README.md
+```
+
+## Como executar
+
+### Pré-requisitos
+
+- Node.js `^20.19.0` ou `>=22.12.0`
+- npm
+- Git
+
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/NathanStabille/task-flow.git
+cd task-flow
+```
+
+### 2. Configurar e iniciar o backend
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+A API ficará disponível em `http://localhost:3001/api`.
+
+> **Atenção:** o comando `npm run db:seed` recria os dados de demonstração e remove os registros existentes no banco SQLite local.
+
+### 3. Configurar e iniciar o frontend
+
+Em outro terminal:
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+A aplicação ficará disponível em `http://localhost:5173`.
+
+### Dados de demonstração
+
+O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entre diferentes status e prioridades. Não há autenticação nesta versão; o usuário Nathan é apresentado como o usuário atual da interface.
+
+## Variáveis de ambiente
+
+### Backend
+
+| Variável       | Valor padrão            | Descrição                   |
+| -------------- | ----------------------- | --------------------------- |
+| `DATABASE_URL` | `file:./prisma/dev.db`  | Localização do banco SQLite |
+| `PORT`         | `3001`                  | Porta da API                |
+| `FRONTEND_URL` | `http://localhost:5173` | Origem permitida pelo CORS  |
+
+### Frontend
+
+| Variável       | Valor padrão                | Descrição            |
+| -------------- | --------------------------- | -------------------- |
+| `VITE_API_URL` | `http://localhost:3001/api` | Endereço base da API |
+
+## API REST
+
+### Status da aplicação
+
+| Método | Endpoint      | Descrição                         |
+| ------ | ------------- | --------------------------------- |
+| `GET`  | `/api/health` | Verifica se a API está disponível |
+
+### Projetos
+
+| Método   | Endpoint            | Descrição                         |
+| -------- | ------------------- | --------------------------------- |
+| `GET`    | `/api/projects`     | Lista os projetos                 |
+| `GET`    | `/api/projects/:id` | Retorna um projeto e suas tarefas |
+| `POST`   | `/api/projects`     | Cria um projeto                   |
+| `PUT`    | `/api/projects/:id` | Atualiza um projeto               |
+| `DELETE` | `/api/projects/:id` | Exclui um projeto                 |
+
+### Tarefas
+
+| Método   | Endpoint                   | Descrição                     |
+| -------- | -------------------------- | ----------------------------- |
+| `GET`    | `/api/tasks`               | Lista as tarefas              |
+| `GET`    | `/api/tasks?projectId=:id` | Filtra as tarefas por projeto |
+| `GET`    | `/api/tasks/:id`           | Retorna uma tarefa            |
+| `POST`   | `/api/tasks`               | Cria uma tarefa               |
+| `PUT`    | `/api/tasks/:id`           | Atualiza uma tarefa           |
+| `DELETE` | `/api/tasks/:id`           | Exclui uma tarefa             |
+
+### Usuários e atividades
+
+| Método | Endpoint                   | Descrição                                  |
+| ------ | -------------------------- | ------------------------------------------ |
+| `GET`  | `/api/users`               | Lista os responsáveis disponíveis          |
+| `GET`  | `/api/activities`          | Lista as atividades mais recentes          |
+| `GET`  | `/api/activities?limit=20` | Limita o resultado entre 1 e 100 registros |
+
+As operações de criação retornam `201 Created`, exclusões retornam `204 No Content` e erros de validação ou recursos inexistentes retornam respostas JSON com os status HTTP apropriados.
+
+## Exemplo de fluxo
+
+Ao criar uma tarefa, o fluxo principal é:
+
+1. O formulário React envia um `POST /api/tasks`.
+2. O Express encaminha a requisição para o controller de tarefas.
+3. O controller valida os campos e os relacionamentos informados.
+4. O Prisma salva a tarefa e sua atividade em uma transação.
+5. A API retorna a tarefa criada em JSON.
+6. O frontend atualiza a listagem com os dados da API.
+
+Exemplo de payload:
+
+```json
+{
+  "title": "Atualizar documentação",
+  "description": "Revisar o guia de publicação",
+  "status": "TODO",
+  "priority": "MEDIUM",
+  "dueDate": "2026-09-10",
+  "projectId": 1,
+  "assigneeId": 1
+}
+```
+
+## Scripts úteis
+
+### Backend
+
+| Comando              | Descrição                                   |
+| -------------------- | ------------------------------------------- |
+| `npm run dev`        | Inicia a API com recarregamento automático  |
+| `npm run build`      | Gera o Prisma Client e compila o TypeScript |
+| `npm start`          | Executa a versão compilada                  |
+| `npm run typecheck`  | Verifica os tipos sem gerar arquivos        |
+| `npm run db:prepare` | Prepara o arquivo SQLite configurado        |
+| `npm run db:migrate` | Prepara o banco e aplica migrations locais  |
+| `npm run db:deploy`  | Aplica migrations existentes em produção    |
+| `npm run db:seed`    | Recria os dados de demonstração             |
+| `npm run db:studio`  | Abre a interface do Prisma Studio           |
+
+### Frontend
+
+| Comando                | Descrição                                    |
+| ---------------------- | -------------------------------------------- |
+| `npm run dev`          | Inicia o Vite em modo de desenvolvimento     |
+| `npm run build`        | Verifica os tipos e gera o build de produção |
+| `npm run preview`      | Visualiza localmente o build gerado          |
+| `npm run lint`         | Executa o ESLint                             |
+| `npm run format`       | Formata os arquivos com Prettier             |
+| `npm run format:check` | Verifica a formatação sem alterar arquivos   |
+
+## Decisões do MVP
+
+- Frontend e backend separados para deixar clara a comunicação via API REST.
+- SQLite para reduzir a configuração local e manter a demonstração portátil.
+- Prisma para modelagem, migrations e acesso tipado ao banco.
+- `fetch` em vez de uma dependência HTTP adicional.
+- Alteração de status no Kanban por seletor, mantendo o primeiro MVP simples e acessível.
+- Usuários fictícios no lugar de autenticação, preservando o foco no gerenciamento de tarefas.
+
+## Aprendizados
+
+- Estruturação de rotas, controllers e middlewares com Express.
+- Modelagem de relacionamentos entre projetos, tarefas e usuários.
+- Persistência e migrations com Prisma e SQLite.
+- Integração entre uma SPA React e uma API REST independente.
+- Tratamento de estados assíncronos e erros no frontend.
+- Organização e manutenção de uma aplicação full-stack em TypeScript.
+
+## Possíveis melhorias
+
+- Autenticação e autorização por perfil.
+- Drag and drop no quadro Kanban.
+- Paginação e filtros processados pelo backend.
+- Migração do SQLite para PostgreSQL em produção.
+- Testes unitários, de integração e end-to-end.
+- Docker e Docker Compose.
+- Notificações e auditoria associada ao usuário autenticado.
+
+## Roteiro rápido de demonstração
+
+1. Apresentar os indicadores e atividades recentes no dashboard.
+2. Criar ou abrir um projeto e visualizar suas tarefas.
+3. Criar uma tarefa com responsável, prioridade e prazo.
+4. Mover a tarefa pelo Kanban e mostrar a atualização do status.
+5. Abrir o histórico e localizar as atividades geradas automaticamente.
+
+Esse fluxo demonstra, em poucos minutos, a integração completa entre React, API REST, Express, Prisma e SQLite.
