@@ -1,0 +1,26 @@
+# Dependencies and generated builds
+node_modules/
+dist/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Local environment files (keep examples in Git)
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Logs and local tooling
+*.log
+.eslintcache
+.DS_Store
+.idea/
+.vscode/
+
+# SQLite databases are generated locally from migrations and seed data.
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/prisma/*.db-shm
+backend/prisma/*.db-wal
+backend/src/generated/prisma/
