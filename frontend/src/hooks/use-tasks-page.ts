@@ -28,6 +28,13 @@ export function useTasksPage() {
     setRequestVersion((version) => version + 1);
   }, []);
 
+  const replaceTask = useCallback((task: Task) => {
+    setState((current) => ({
+      ...current,
+      tasks: current.tasks.map((currentTask) => (currentTask.id === task.id ? task : currentTask)),
+    }));
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -59,5 +66,5 @@ export function useTasksPage() {
     return () => controller.abort();
   }, [requestVersion]);
 
-  return { ...state, reload };
+  return { ...state, reload, replaceTask };
 }

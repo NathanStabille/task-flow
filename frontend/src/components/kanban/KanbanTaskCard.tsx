@@ -1,8 +1,10 @@
-import { CalendarDays, Edit3, FolderKanban, UserRound } from 'lucide-react';
+import { useDraggable } from '@dnd-kit/react';
+import { CalendarDays, Edit3, FolderKanban, GripVertical, UserRound } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types';
 import { formatDateOnly, isDateOverdue } from '../../utils/formatters';
 import { Avatar } from '../ui/Avatar';
 import { StatusBadge } from '../ui/StatusBadge';
+import { KANBAN_TASK_TYPE, taskDragId } from './kanban-dnd';
 
 interface KanbanTaskCardProps {
   task: Task;
@@ -19,22 +21,44 @@ const priorityBorders = {
 
 export function KanbanTaskCard({ task, isUpdating, onEdit, onStatusChange }: KanbanTaskCardProps) {
   const overdue = task.status !== 'DONE' && task.dueDate ? isDateOverdue(task.dueDate) : false;
+  const { ref, handleRef, isDragging } = useDraggable({
+    id: taskDragId(task.id),
+    type: KANBAN_TASK_TYPE,
+    data: { taskId: task.id, title: task.title },
+    disabled: isUpdating,
+  });
 
   return (
     <article
-      className={`rounded-xl border border-l-[3px] border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${priorityBorders[task.priority]}`}
+      ref={ref}
+      className={`rounded-xl border border-l-[3px] border-slate-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity] hover:shadow-md ${priorityBorders[task.priority]} ${
+        isDragging ? 'z-30 opacity-70 shadow-xl ring-2 ring-indigo-400/40' : ''
+      } ${isUpdating ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <StatusBadge value={task.priority} />
-        <button
-          type="button"
-          aria-label={`Editar ${task.title}`}
-          title="Editar tarefa"
-          onClick={onEdit}
-          className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-        >
-          <Edit3 size={14} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            ref={handleRef}
+            type="button"
+            aria-label={`Arrastar tarefa ${task.title}`}
+            title="Arraste para outra etapa ou use Enter e as setas"
+            disabled={isUpdating}
+            className="touch-none cursor-grab rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600 active:cursor-grabbing disabled:cursor-wait disabled:opacity-40"
+          >
+            <GripVertical size={15} />
+          </button>
+          <button
+            type="button"
+            aria-label={`Editar ${task.title}`}
+            title="Editar tarefa"
+            disabled={isUpdating}
+            onClick={onEdit}
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-wait disabled:opacity-40"
+          >
+            <Edit3 size={14} />
+          </button>
+        </div>
       </div>
 
       <h3 className="mt-3 text-sm font-bold leading-5 text-slate-850">{task.title}</h3>
@@ -74,7 +98,7 @@ export function KanbanTaskCard({ task, isUpdating, onEdit, onStatusChange }: Kan
         <span className="sr-only">Mover {task.title} para</span>
         <select
           value={task.status}
-          disabled={isUpdating}
+          disabled={isUpdating || isDragging}
           onChange={(event) => onStatusChange(event.target.value as TaskStatus)}
           className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-[10px] font-semibold text-slate-600 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 disabled:cursor-wait disabled:opacity-50"
         >

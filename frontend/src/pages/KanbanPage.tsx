@@ -1,3 +1,4 @@
+import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react';
 import {
   CheckCircle2,
   Circle,
@@ -13,6 +14,7 @@ import {
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { KanbanColumn } from '../components/kanban/KanbanColumn';
+import { statusFromDropId, taskIdFromDragId } from '../components/kanban/kanban-dnd';
 import { TaskFormModal } from '../components/tasks/TaskFormModal';
 import { useTasksPage } from '../hooks/use-tasks-page';
 import { taskService } from '../services/tasks';
@@ -77,12 +79,12 @@ function KanbanSkeleton() {
 }
 
 export function KanbanPage() {
-  const { tasks, projects, users, isLoading, error, reload } = useTasksPage();
+  const { tasks, projects, users, isLoading, error, reload, replaceTask } = useTasksPage();
   const [search, setSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState('ALL');
   const [assigneeFilter, setAssigneeFilter] = useState('ALL');
   const [formState, setFormState] = useState<FormState | null>(null);
-  const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
+  const [updatingTaskIds, setUpdatingTaskIds] = useState<Set<number>>(() => new Set());
   const [notice, setNotice] = useState<Notice | null>(null);
 
   const filteredTasks = useMemo(() => {
@@ -120,24 +122,45 @@ export function KanbanPage() {
   }
 
   async function handleStatusChange(task: Task, status: TaskStatus) {
-    if (task.status === status) return;
+    if (task.status === status || updatingTaskIds.has(task.id)) return;
 
-    setUpdatingTaskId(task.id);
+    setUpdatingTaskIds((current) => new Set(current).add(task.id));
     setNotice(null);
+    replaceTask({ ...task, status });
 
     try {
-      await taskService.update(task.id, { status });
+      const updatedTask = await taskService.update(task.id, { status });
+      replaceTask(updatedTask);
       setNotice({ message: `Tarefa ${task.title} movida com sucesso.`, tone: 'success' });
-      reload();
     } catch (updateError) {
+      replaceTask(task);
       setNotice({
         message:
           updateError instanceof Error ? updateError.message : 'Não foi possível mover a tarefa.',
         tone: 'error',
       });
     } finally {
-      setUpdatingTaskId(null);
+      setUpdatingTaskIds((current) => {
+        const next = new Set(current);
+        next.delete(task.id);
+        return next;
+      });
     }
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    if (event.canceled) return;
+
+    const source = event.operation.source;
+    const target = event.operation.target;
+    if (!source || !target) return;
+
+    const taskId = taskIdFromDragId(source.id);
+    const status = statusFromDropId(target.id);
+    if (!taskId || !status) return;
+
+    const task = tasks.find((candidate) => candidate.id === taskId);
+    if (task) void handleStatusChange(task, status);
   }
 
   function clearFilters() {
@@ -155,7 +178,7 @@ export function KanbanPage() {
             Quadro Kanban
           </h2>
           <p className="mt-1.5 text-sm text-slate-500">
-            Visualize as etapas e mova tarefas pelo seletor de status.
+            Arraste as tarefas entre as etapas ou use o seletor de status.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -273,18 +296,24 @@ export function KanbanPage() {
               {filteredTasks.length === 1 ? 'tarefa visível' : 'tarefas visíveis'}
             </p>
           </div>
-          <div className="grid items-start gap-4 lg:grid-cols-3">
-            {columns.map((column) => (
-              <KanbanColumn
-                key={column.status}
-                {...column}
-                tasks={filteredTasks.filter((task) => task.status === column.status)}
-                updatingTaskId={updatingTaskId}
-                onEdit={(task) => setFormState({ mode: 'edit', task })}
-                onStatusChange={(task, status) => void handleStatusChange(task, status)}
-              />
-            ))}
-          </div>
+          <p className="sr-only">
+            Para mover pelo teclado, focalize o botão de arrastar, pressione Enter, use as setas
+            para escolher uma coluna e pressione Enter novamente.
+          </p>
+          <DragDropProvider onDragEnd={handleDragEnd}>
+            <div className="grid items-start gap-4 lg:grid-cols-3">
+              {columns.map((column) => (
+                <KanbanColumn
+                  key={column.status}
+                  {...column}
+                  tasks={filteredTasks.filter((task) => task.status === column.status)}
+                  updatingTaskIds={updatingTaskIds}
+                  onEdit={(task) => setFormState({ mode: 'edit', task })}
+                  onStatusChange={(task, status) => void handleStatusChange(task, status)}
+                />
+              ))}
+            </div>
+          </DragDropProvider>
         </>
       )}
 

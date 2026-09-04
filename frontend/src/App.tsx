@@ -5,7 +5,6 @@ import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
 import { ActivitiesPage } from './pages/ActivitiesPage';
 import { DashboardPage } from './pages/DashboardPage';
-import { KanbanPage } from './pages/KanbanPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { TasksPage } from './pages/TasksPage';
@@ -25,7 +24,11 @@ const router = createBrowserRouter([
           { path: '/', element: <DashboardPage /> },
           { path: '/projetos', element: <ProjectsPage /> },
           { path: '/tarefas', element: <TasksPage /> },
-          { path: '/kanban', element: <KanbanPage /> },
+          {
+            path: '/kanban',
+            lazy: () =>
+              import('./pages/KanbanPage').then(({ KanbanPage }) => ({ Component: KanbanPage })),
+          },
           { path: '/atividades', element: <ActivitiesPage /> },
           {
             element: <AdminRoute />,

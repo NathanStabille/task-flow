@@ -39,7 +39,8 @@ Frontend → Route → Controller → Prisma → SQLite
 - Proteção das rotas da API com JWT armazenado em cookie `HttpOnly`.
 - Perfis de acesso `ADMIN` e `MEMBER` com autorização validada no backend.
 - Gerenciamento administrativo da equipe, incluindo cadastro, edição e exclusão de usuários.
-- Quadro Kanban com alteração de status entre `TODO`, `IN_PROGRESS` e `DONE`.
+- Quadro Kanban com drag and drop acessível entre `TODO`, `IN_PROGRESS` e `DONE`.
+- Atualização otimista no Kanban, com restauração automática quando a API falha.
 - Registro automático de criação, edição, exclusão, atribuição e mudança de status.
 - Histórico de atividades com busca, categorias e filtro por período.
 - Estados de carregamento, erro, lista vazia e confirmação de exclusão.
@@ -55,6 +56,7 @@ Frontend → Route → Controller → Prisma → SQLite
 - Vite
 - Tailwind CSS
 - React Router
+- dnd kit
 - Lucide React
 - ESLint e Prettier
 
@@ -302,7 +304,8 @@ Exemplo de payload:
 - SQLite para reduzir a configuração local e manter a demonstração portátil.
 - Prisma para modelagem, migrations e acesso tipado ao banco.
 - `fetch` em vez de uma dependência HTTP adicional.
-- Alteração de status no Kanban por seletor, mantendo o primeiro MVP simples e acessível.
+- Drag and drop no Kanban com suporte a mouse, toque e teclado, mantendo o seletor como alternativa acessível.
+- Carregamento do módulo do Kanban sob demanda para reduzir o JavaScript inicial.
 - Senhas armazenadas somente como hashes bcrypt.
 - JWT com expiração de oito horas armazenado em cookie inacessível ao JavaScript.
 - Autorização por perfil aplicada na API, independentemente da visibilidade dos controles no frontend.
@@ -321,7 +324,6 @@ Exemplo de payload:
 ## Próximas evoluções
 
 - Recuperação e redefinição de senha.
-- Drag and drop no quadro Kanban.
 - Paginação e filtros processados pelo backend.
 - Migração do SQLite para PostgreSQL em produção.
 - Testes unitários do frontend e testes end-to-end.

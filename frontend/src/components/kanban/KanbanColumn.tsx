@@ -1,32 +1,50 @@
+import { useDroppable } from '@dnd-kit/react';
 import type { LucideIcon } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types';
 import { KanbanTaskCard } from './KanbanTaskCard';
+import { columnDropId, KANBAN_TASK_TYPE } from './kanban-dnd';
 
 interface KanbanColumnProps {
+  status: TaskStatus;
   title: string;
   description: string;
   icon: LucideIcon;
   iconStyle: string;
   dotStyle: string;
   tasks: Task[];
-  updatingTaskId: number | null;
+  updatingTaskIds: ReadonlySet<number>;
   onEdit: (task: Task) => void;
   onStatusChange: (task: Task, status: TaskStatus) => void;
 }
 
 export function KanbanColumn({
+  status,
   title,
   description,
   icon: Icon,
   iconStyle,
   dotStyle,
   tasks,
-  updatingTaskId,
+  updatingTaskIds,
   onEdit,
   onStatusChange,
 }: KanbanColumnProps) {
+  const { ref, isDropTarget } = useDroppable({
+    id: columnDropId(status),
+    accept: KANBAN_TASK_TYPE,
+    data: { status },
+  });
+
   return (
-    <section className="flex min-h-80 flex-col rounded-2xl border border-slate-200/80 bg-slate-100/60 p-3">
+    <section
+      ref={ref}
+      aria-label={`${title}: ${tasks.length} ${tasks.length === 1 ? 'tarefa' : 'tarefas'}`}
+      className={`flex min-h-80 flex-col rounded-2xl border p-3 transition-[border-color,background-color,box-shadow] ${
+        isDropTarget
+          ? 'border-indigo-400 bg-indigo-50/80 shadow-lg shadow-indigo-100 ring-2 ring-indigo-500/10'
+          : 'border-slate-200/80 bg-slate-100/60'
+      }`}
+    >
       <div className="flex items-center gap-3 px-1 pb-3 pt-1">
         <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconStyle}`}>
           <Icon size={15} />
@@ -58,7 +76,7 @@ export function KanbanColumn({
             <KanbanTaskCard
               key={task.id}
               task={task}
-              isUpdating={updatingTaskId === task.id}
+              isUpdating={updatingTaskIds.has(task.id)}
               onEdit={() => onEdit(task)}
               onStatusChange={(status) => onStatusChange(task, status)}
             />
