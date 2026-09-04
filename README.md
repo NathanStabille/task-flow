@@ -1,6 +1,6 @@
 # TaskFlow
 
-TaskFlow é uma aplicação full-stack de gerenciamento de projetos e tarefas, criada como um MVP para praticar e demonstrar uma arquitetura web com frontend e backend independentes.
+TaskFlow é uma aplicação full-stack de gerenciamento de projetos e tarefas, iniciada como um MVP e agora em evolução para uma solução mais completa, mantendo frontend e backend independentes.
 
 A aplicação permite acompanhar indicadores, gerenciar projetos e tarefas, organizar o trabalho em um quadro Kanban e consultar um histórico automático das principais alterações.
 
@@ -8,7 +8,7 @@ A aplicação permite acompanhar indicadores, gerenciar projetos e tarefas, orga
 
 O projeto foi desenvolvido para consolidar conhecimentos de desenvolvimento full-stack, especialmente na construção de uma API REST com Node.js e na integração entre uma interface React e um banco de dados relacional.
 
-O escopo foi mantido intencionalmente pequeno: entregar um sistema funcional, organizado, fácil de executar e simples de explicar.
+A primeira versão priorizou um sistema funcional, organizado e fácil de explicar. A evolução atual adiciona qualidade, segurança e recursos de produto sem abandonar essa clareza arquitetural.
 
 ## Arquitetura
 
@@ -40,6 +40,7 @@ Frontend → Route → Controller → Prisma → SQLite
 - Histórico de atividades com busca, categorias e filtro por período.
 - Estados de carregamento, erro, lista vazia e confirmação de exclusão.
 - Interface responsiva para desktop e dispositivos móveis.
+- Testes de integração automatizados para os principais fluxos da API.
 
 ## Tecnologias
 
@@ -61,6 +62,7 @@ Frontend → Route → Controller → Prisma → SQLite
 - Prisma ORM
 - SQLite
 - CORS e dotenv
+- Node.js Test Runner e Supertest
 
 ## Estrutura do projeto
 
@@ -193,6 +195,17 @@ O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entr
 
 As operações de criação retornam `201 Created`, exclusões retornam `204 No Content` e erros de validação ou recursos inexistentes retornam respostas JSON com os status HTTP apropriados.
 
+## Testes automatizados
+
+O backend possui testes de integração que exercitam a API Express completa, incluindo validações, CRUD de projetos e tarefas, usuários, atividades e respostas de erro.
+
+```bash
+cd backend
+npm test
+```
+
+Os testes usam o banco isolado `backend/prisma/test.db`, que é preparado automaticamente e ignorado pelo Git. O banco de desenvolvimento não é alterado.
+
 ## Exemplo de fluxo
 
 Ao criar uma tarefa, o fluxo principal é:
@@ -222,17 +235,19 @@ Exemplo de payload:
 
 ### Backend
 
-| Comando              | Descrição                                   |
-| -------------------- | ------------------------------------------- |
-| `npm run dev`        | Inicia a API com recarregamento automático  |
-| `npm run build`      | Gera o Prisma Client e compila o TypeScript |
-| `npm start`          | Executa a versão compilada                  |
-| `npm run typecheck`  | Verifica os tipos sem gerar arquivos        |
-| `npm run db:prepare` | Prepara o arquivo SQLite configurado        |
-| `npm run db:migrate` | Prepara o banco e aplica migrations locais  |
-| `npm run db:deploy`  | Aplica migrations existentes em produção    |
-| `npm run db:seed`    | Recria os dados de demonstração             |
-| `npm run db:studio`  | Abre a interface do Prisma Studio           |
+| Comando                  | Descrição                                   |
+| ------------------------ | ------------------------------------------- |
+| `npm run dev`            | Inicia a API com recarregamento automático  |
+| `npm run build`          | Gera o Prisma Client e compila o TypeScript |
+| `npm start`              | Executa a versão compilada                  |
+| `npm run typecheck`      | Verifica os tipos sem gerar arquivos        |
+| `npm test`               | Executa os testes de integração da API      |
+| `npm run test:typecheck` | Verifica os tipos da suíte de testes        |
+| `npm run db:prepare`     | Prepara o arquivo SQLite configurado        |
+| `npm run db:migrate`     | Prepara o banco e aplica migrations locais  |
+| `npm run db:deploy`      | Aplica migrations existentes em produção    |
+| `npm run db:seed`        | Recria os dados de demonstração             |
+| `npm run db:studio`      | Abre a interface do Prisma Studio           |
 
 ### Frontend
 
@@ -245,7 +260,7 @@ Exemplo de payload:
 | `npm run format`       | Formata os arquivos com Prettier             |
 | `npm run format:check` | Verifica a formatação sem alterar arquivos   |
 
-## Decisões do MVP
+## Decisões técnicas
 
 - Frontend e backend separados para deixar clara a comunicação via API REST.
 - SQLite para reduzir a configuração local e manter a demonstração portátil.
@@ -263,13 +278,13 @@ Exemplo de payload:
 - Tratamento de estados assíncronos e erros no frontend.
 - Organização e manutenção de uma aplicação full-stack em TypeScript.
 
-## Possíveis melhorias
+## Próximas evoluções
 
 - Autenticação e autorização por perfil.
 - Drag and drop no quadro Kanban.
 - Paginação e filtros processados pelo backend.
 - Migração do SQLite para PostgreSQL em produção.
-- Testes unitários, de integração e end-to-end.
+- Testes unitários do frontend e testes end-to-end.
 - Docker e Docker Compose.
 - Notificações e auditoria associada ao usuário autenticado.
 
