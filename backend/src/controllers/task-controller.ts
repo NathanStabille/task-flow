@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../prisma/client.js';
+import { publicUserSelect } from '../prisma/selects.js';
 import { TASK_PRIORITIES, TASK_STATUSES } from '../types/domain.js';
+import { authenticatedUser } from '../utils/authenticated-user.js';
 import { HttpError } from '../utils/http-error.js';
 import {
   enumValue,
@@ -13,10 +15,13 @@ import {
 
 const taskInclude = {
   project: true,
-  assignee: true,
+  assignee: { select: publicUserSelect },
 } as const;
 
-async function ensureRelations(projectId: number | undefined, assigneeId: number | null | undefined) {
+async function ensureRelations(
+  projectId: number | undefined,
+  assigneeId: number | null | undefined,
+) {
   if (projectId !== undefined) {
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project) throw new HttpError(400, 'O projeto informado não existe.');
@@ -29,9 +34,7 @@ async function ensureRelations(projectId: number | undefined, assigneeId: number
 }
 
 export async function listTasks(request: Request, response: Response) {
-  const projectId = request.query.projectId
-    ? parseId(String(request.query.projectId))
-    : undefined;
+  const projectId = request.query.projectId ? parseId(String(request.query.projectId)) : undefined;
 
   const tasks = await prisma.task.findMany({
     where: projectId ? { projectId } : undefined,
@@ -51,6 +54,7 @@ export async function getTask(request: Request, response: Response) {
 }
 
 export async function createTask(request: Request, response: Response) {
+  const actor = authenticatedUser(request);
   const body = request.body ?? {};
   const title = requiredText(body.title, 'title');
   const projectId = optionalEntityId(body.projectId, 'projectId');
@@ -64,12 +68,8 @@ export async function createTask(request: Request, response: Response) {
   const data = {
     title,
     description: optionalText(body.description) ?? '',
-    status: body.status
-      ? enumValue(body.status, TASK_STATUSES, 'status')
-      : 'TODO',
-    priority: body.priority
-      ? enumValue(body.priority, TASK_PRIORITIES, 'priority')
-      : 'MEDIUM',
+    status: body.status ? enumValue(body.status, TASK_STATUSES, 'status') : 'TODO',
+    priority: body.priority ? enumValue(body.priority, TASK_PRIORITIES, 'priority') : 'MEDIUM',
     dueDate: optionalDate(body.dueDate),
     projectId,
     assigneeId: assigneeId ?? null,
@@ -78,7 +78,7 @@ export async function createTask(request: Request, response: Response) {
   const task = await prisma.$transaction(async (database) => {
     const created = await database.task.create({ data, include: taskInclude });
     await database.activity.create({
-      data: { description: `Nathan criou a tarefa ${created.title}` },
+      data: { description: `${actor.name} criou a tarefa ${created.title}` },
     });
     return created;
   });
@@ -87,6 +87,7 @@ export async function createTask(request: Request, response: Response) {
 }
 
 export async function updateTask(request: Request, response: Response) {
+  const actor = authenticatedUser(request);
   const id = parseId(request.params.id);
   const existing = await prisma.task.findUnique({
     where: { id },
@@ -106,10 +107,7 @@ export async function updateTask(request: Request, response: Response) {
   const data = {
     title: body.title === undefined ? undefined : requiredText(body.title, 'title'),
     description: optionalText(body.description),
-    status:
-      body.status === undefined
-        ? undefined
-        : enumValue(body.status, TASK_STATUSES, 'status'),
+    status: body.status === undefined ? undefined : enumValue(body.status, TASK_STATUSES, 'status'),
     priority:
       body.priority === undefined
         ? undefined
@@ -137,7 +135,9 @@ export async function updateTask(request: Request, response: Response) {
           : `O responsável foi removido da tarefa ${updated.title}`,
       );
     }
-    if (descriptions.length === 0) descriptions.push(`Nathan atualizou a tarefa ${updated.title}`);
+    if (descriptions.length === 0) {
+      descriptions.push(`${actor.name} atualizou a tarefa ${updated.title}`);
+    }
 
     await database.activity.createMany({
       data: descriptions.map((description) => ({ description })),
@@ -150,6 +150,7 @@ export async function updateTask(request: Request, response: Response) {
 }
 
 export async function deleteTask(request: Request, response: Response) {
+  const actor = authenticatedUser(request);
   const id = parseId(request.params.id);
   const task = await prisma.task.findUnique({ where: { id } });
   if (!task) throw new HttpError(404, 'Tarefa não encontrada.');
@@ -157,7 +158,7 @@ export async function deleteTask(request: Request, response: Response) {
   await prisma.$transaction(async (database) => {
     await database.task.delete({ where: { id } });
     await database.activity.create({
-      data: { description: `Nathan excluiu a tarefa ${task.title}` },
+      data: { description: `${actor.name} excluiu a tarefa ${task.title}` },
     });
   });
 

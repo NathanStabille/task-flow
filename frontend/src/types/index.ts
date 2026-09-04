@@ -2,6 +2,13 @@ export type ProjectStatus = 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string | null;
+}
+
 export interface User {
   id: number;
   name: string;

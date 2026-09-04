@@ -1,4 +1,5 @@
 import { prisma } from '../src/prisma/client.js';
+import { hashPassword } from '../src/services/auth-service.js';
 
 async function main() {
   await prisma.activity.deleteMany();
@@ -6,18 +7,20 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
 
+  const passwordHash = await hashPassword('TaskFlow123!');
+
   const [nathan, ana, carlos, joao] = await Promise.all([
     prisma.user.create({
-      data: { name: 'Nathan', email: 'nathan@taskflow.dev', avatar: 'NA' },
+      data: { name: 'Nathan', email: 'nathan@taskflow.dev', passwordHash, avatar: 'NA' },
     }),
     prisma.user.create({
-      data: { name: 'Ana Souza', email: 'ana@taskflow.dev', avatar: 'AS' },
+      data: { name: 'Ana Souza', email: 'ana@taskflow.dev', passwordHash, avatar: 'AS' },
     }),
     prisma.user.create({
-      data: { name: 'Carlos Lima', email: 'carlos@taskflow.dev', avatar: 'CL' },
+      data: { name: 'Carlos Lima', email: 'carlos@taskflow.dev', passwordHash, avatar: 'CL' },
     }),
     prisma.user.create({
-      data: { name: 'João Silva', email: 'joao@taskflow.dev', avatar: 'JS' },
+      data: { name: 'João Silva', email: 'joao@taskflow.dev', passwordHash, avatar: 'JS' },
     }),
   ]);
 

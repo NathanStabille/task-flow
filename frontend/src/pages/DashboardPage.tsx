@@ -9,6 +9,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/use-auth';
 import { ActivityIcon } from '../components/activities/ActivityIcon';
 import { MetricCard } from '../components/ui/MetricCard';
 import { SectionCard } from '../components/ui/SectionCard';
@@ -226,6 +227,7 @@ function RecentActivities({ activities }: { activities: Activity[] }) {
 }
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const { data, isLoading, error, reload } = useDashboard();
 
   if (isLoading) return <DashboardSkeleton />;
@@ -244,7 +246,7 @@ export function DashboardPage() {
         <div>
           <p className="text-xs font-semibold text-slate-500">{formatToday()}</p>
           <h2 className="mt-1.5 text-2xl font-black tracking-tight text-slate-950 sm:text-[28px]">
-            Bom dia, Nathan <span aria-hidden="true">👋</span>
+            Bom dia, {user?.name.split(' ')[0]} <span aria-hidden="true">👋</span>
           </h2>
           <p className="mt-1.5 text-sm text-slate-500">
             Aqui está o resumo dos seus projetos hoje.

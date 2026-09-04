@@ -35,6 +35,8 @@ Frontend → Route → Controller → Prisma → SQLite
 - CRUD completo de tarefas.
 - Filtros por status, prioridade, projeto e responsável.
 - Associação de usuários fictícios às tarefas.
+- Autenticação por email e senha com sessão expirada automaticamente.
+- Proteção das rotas da API com JWT armazenado em cookie `HttpOnly`.
 - Quadro Kanban com alteração de status entre `TODO`, `IN_PROGRESS` e `DONE`.
 - Registro automático de criação, edição, exclusão, atribuição e mudança de status.
 - Histórico de atividades com busca, categorias e filtro por período.
@@ -62,6 +64,7 @@ Frontend → Route → Controller → Prisma → SQLite
 - Prisma ORM
 - SQLite
 - CORS e dotenv
+- bcryptjs, JSON Web Token e cookies `HttpOnly`
 - Node.js Test Runner e Supertest
 
 ## Estrutura do projeto
@@ -138,17 +141,27 @@ A aplicação ficará disponível em `http://localhost:5173`.
 
 ### Dados de demonstração
 
-O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entre diferentes status e prioridades. Não há autenticação nesta versão; o usuário Nathan é apresentado como o usuário atual da interface.
+O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entre diferentes status e prioridades. Todas as contas de demonstração usam a senha `TaskFlow123!`.
+
+Para entrar como Nathan:
+
+```text
+Email: nathan@taskflow.dev
+Senha: TaskFlow123!
+```
 
 ## Variáveis de ambiente
 
 ### Backend
 
-| Variável       | Valor padrão            | Descrição                   |
-| -------------- | ----------------------- | --------------------------- |
-| `DATABASE_URL` | `file:./prisma/dev.db`  | Localização do banco SQLite |
-| `PORT`         | `3001`                  | Porta da API                |
-| `FRONTEND_URL` | `http://localhost:5173` | Origem permitida pelo CORS  |
+| Variável       | Valor padrão                           | Descrição                         |
+| -------------- | -------------------------------------- | --------------------------------- |
+| `DATABASE_URL` | `file:./prisma/dev.db`                 | Localização do banco SQLite       |
+| `PORT`         | `3001`                                 | Porta da API                      |
+| `FRONTEND_URL` | `http://localhost:5173`                | Origem permitida pelo CORS        |
+| `JWT_SECRET`   | Segredo local fora do modo de produção | Assinatura das sessões do usuário |
+
+Em produção, `JWT_SECRET` é obrigatório e deve receber um valor longo, aleatório e mantido fora do repositório.
 
 ### Frontend
 
@@ -163,6 +176,16 @@ O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entr
 | Método | Endpoint      | Descrição                         |
 | ------ | ------------- | --------------------------------- |
 | `GET`  | `/api/health` | Verifica se a API está disponível |
+
+### Autenticação
+
+| Método | Endpoint           | Descrição                           |
+| ------ | ------------------ | ----------------------------------- |
+| `POST` | `/api/auth/login`  | Autentica e cria o cookie de sessão |
+| `GET`  | `/api/auth/me`     | Retorna o usuário autenticado       |
+| `POST` | `/api/auth/logout` | Encerra e remove a sessão           |
+
+As rotas de projetos, tarefas, usuários e atividades exigem uma sessão autenticada. O frontend envia o cookie automaticamente com `credentials: include`.
 
 ### Projetos
 
@@ -197,7 +220,7 @@ As operações de criação retornam `201 Created`, exclusões retornam `204 No 
 
 ## Testes automatizados
 
-O backend possui testes de integração que exercitam a API Express completa, incluindo validações, CRUD de projetos e tarefas, usuários, atividades e respostas de erro.
+O backend possui testes de integração que exercitam a API Express completa, incluindo login, sessão, rotas protegidas, validações, CRUD de projetos e tarefas, usuários, atividades e respostas de erro.
 
 ```bash
 cd backend
@@ -267,7 +290,9 @@ Exemplo de payload:
 - Prisma para modelagem, migrations e acesso tipado ao banco.
 - `fetch` em vez de uma dependência HTTP adicional.
 - Alteração de status no Kanban por seletor, mantendo o primeiro MVP simples e acessível.
-- Usuários fictícios no lugar de autenticação, preservando o foco no gerenciamento de tarefas.
+- Senhas armazenadas somente como hashes bcrypt.
+- JWT com expiração de oito horas armazenado em cookie inacessível ao JavaScript.
+- Logs de atividade associados ao nome do usuário autenticado.
 
 ## Aprendizados
 
@@ -277,10 +302,11 @@ Exemplo de payload:
 - Integração entre uma SPA React e uma API REST independente.
 - Tratamento de estados assíncronos e erros no frontend.
 - Organização e manutenção de uma aplicação full-stack em TypeScript.
+- Autenticação entre aplicações separadas usando cookies, CORS e JWT.
 
 ## Próximas evoluções
 
-- Autenticação e autorização por perfil.
+- Cadastro de usuários, recuperação de senha e autorização por perfil.
 - Drag and drop no quadro Kanban.
 - Paginação e filtros processados pelo backend.
 - Migração do SQLite para PostgreSQL em produção.
@@ -290,10 +316,10 @@ Exemplo de payload:
 
 ## Roteiro rápido de demonstração
 
-1. Apresentar os indicadores e atividades recentes no dashboard.
-2. Criar ou abrir um projeto e visualizar suas tarefas.
-3. Criar uma tarefa com responsável, prioridade e prazo.
-4. Mover a tarefa pelo Kanban e mostrar a atualização do status.
-5. Abrir o histórico e localizar as atividades geradas automaticamente.
+1. Entrar com a conta de demonstração do Nathan.
+2. Apresentar os indicadores e atividades recentes no dashboard.
+3. Criar ou abrir um projeto e visualizar suas tarefas.
+4. Criar uma tarefa com responsável, prioridade e prazo.
+5. Mover a tarefa pelo Kanban e localizar a ação no histórico.
 
 Esse fluxo demonstra, em poucos minutos, a integração completa entre React, API REST, Express, Prisma e SQLite.

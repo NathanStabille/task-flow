@@ -1,4 +1,5 @@
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
+export const UNAUTHORIZED_EVENT = 'taskflow:unauthorized';
 
 interface ErrorResponse {
   message?: string;
@@ -17,6 +18,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
@@ -25,6 +27,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ErrorResponse;
+
+    if (response.status === 401 && path !== '/auth/login') {
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
+
     throw new ApiError(
       error.message || 'Não foi possível concluir a solicitação.',
       response.status,

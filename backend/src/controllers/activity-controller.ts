@@ -14,4 +14,3 @@ export async function listActivities(request: Request, response: Response) {
 
   response.json(activities);
 }
-

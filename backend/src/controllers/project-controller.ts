@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../prisma/client.js';
+import { publicUserSelect } from '../prisma/selects.js';
 import { PROJECT_STATUSES } from '../types/domain.js';
+import { authenticatedUser } from '../utils/authenticated-user.js';
 import { HttpError } from '../utils/http-error.js';
 import { enumValue, optionalText, parseId, requiredText } from '../utils/validation.js';
 
@@ -23,7 +25,7 @@ export async function getProject(request: Request, response: Response) {
     where: { id },
     include: {
       tasks: {
-        include: { assignee: true },
+        include: { assignee: { select: publicUserSelect } },
         orderBy: { createdAt: 'desc' },
       },
       _count: { select: { tasks: true } },
@@ -35,12 +37,11 @@ export async function getProject(request: Request, response: Response) {
 }
 
 export async function createProject(request: Request, response: Response) {
+  const actor = authenticatedUser(request);
   const body = request.body ?? {};
   const name = requiredText(body.name, 'name');
   const description = optionalText(body.description) ?? '';
-  const status = body.status
-    ? enumValue(body.status, PROJECT_STATUSES, 'status')
-    : 'ACTIVE';
+  const status = body.status ? enumValue(body.status, PROJECT_STATUSES, 'status') : 'ACTIVE';
 
   const project = await prisma.$transaction(async (database) => {
     const created = await database.project.create({
@@ -49,7 +50,7 @@ export async function createProject(request: Request, response: Response) {
     });
 
     await database.activity.create({
-      data: { description: `Nathan criou o projeto ${created.name}` },
+      data: { description: `${actor.name} criou o projeto ${created.name}` },
     });
 
     return created;
@@ -59,6 +60,7 @@ export async function createProject(request: Request, response: Response) {
 }
 
 export async function updateProject(request: Request, response: Response) {
+  const actor = authenticatedUser(request);
   const id = parseId(request.params.id);
   const existing = await prisma.project.findUnique({ where: { id } });
   if (!existing) throw new HttpError(404, 'Projeto não encontrado.');
@@ -68,9 +70,7 @@ export async function updateProject(request: Request, response: Response) {
     name: body.name === undefined ? undefined : requiredText(body.name, 'name'),
     description: optionalText(body.description),
     status:
-      body.status === undefined
-        ? undefined
-        : enumValue(body.status, PROJECT_STATUSES, 'status'),
+      body.status === undefined ? undefined : enumValue(body.status, PROJECT_STATUSES, 'status'),
   };
 
   const project = await prisma.$transaction(async (database) => {
@@ -81,7 +81,7 @@ export async function updateProject(request: Request, response: Response) {
     });
 
     await database.activity.create({
-      data: { description: `Nathan atualizou o projeto ${updated.name}` },
+      data: { description: `${actor.name} atualizou o projeto ${updated.name}` },
     });
 
     return updated;
@@ -91,6 +91,7 @@ export async function updateProject(request: Request, response: Response) {
 }
 
 export async function deleteProject(request: Request, response: Response) {
+  const actor = authenticatedUser(request);
   const id = parseId(request.params.id);
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) throw new HttpError(404, 'Projeto não encontrado.');
@@ -98,7 +99,7 @@ export async function deleteProject(request: Request, response: Response) {
   await prisma.$transaction(async (database) => {
     await database.project.delete({ where: { id } });
     await database.activity.create({
-      data: { description: `Nathan excluiu o projeto ${project.name}` },
+      data: { description: `${actor.name} excluiu o projeto ${project.name}` },
     });
   });
 

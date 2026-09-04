@@ -1,16 +1,19 @@
 import {
   Bell,
-  ChevronDown,
   Columns3,
   FolderKanban,
   History,
   LayoutDashboard,
   ListTodo,
+  LoaderCircle,
+  LogOut,
   Menu,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../../auth/use-auth';
+import type { AuthUser } from '../../types';
 import { Avatar } from '../ui/Avatar';
 
 const navigation = [
@@ -30,10 +33,13 @@ const pageTitles: Record<string, string> = {
 };
 
 interface SidebarProps {
+  user: AuthUser;
+  isLoggingOut: boolean;
+  onLogout: () => void;
   onNavigate?: () => void;
 }
 
-function Sidebar({ onNavigate }: SidebarProps) {
+function Sidebar({ user, isLoggingOut, onLogout, onNavigate }: SidebarProps) {
   return (
     <div className="flex h-full flex-col bg-slate-950 px-4 py-5 text-white">
       <div className="flex h-11 items-center gap-3 px-2">
@@ -81,12 +87,25 @@ function Sidebar({ onNavigate }: SidebarProps) {
 
       <div className="mt-auto rounded-2xl border border-white/5 bg-white/[0.03] p-3">
         <div className="flex items-center gap-3">
-          <Avatar name="Nathan" initials="NS" />
+          <Avatar name={user.name} initials={user.avatar} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-slate-100">Nathan Stabille</p>
-            <p className="truncate text-[10px] text-slate-500">Administrador</p>
+            <p className="truncate text-xs font-semibold text-slate-100">{user.name}</p>
+            <p className="truncate text-[10px] text-slate-500">{user.email}</p>
           </div>
-          <ChevronDown aria-hidden="true" size={14} className="text-slate-600" />
+          <button
+            type="button"
+            aria-label="Sair da conta"
+            title="Sair da conta"
+            disabled={isLoggingOut}
+            onClick={onLogout}
+            className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-slate-200 disabled:cursor-wait"
+          >
+            {isLoggingOut ? (
+              <LoaderCircle className="animate-spin" size={15} />
+            ) : (
+              <LogOut size={15} />
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -94,14 +113,23 @@ function Sidebar({ onNavigate }: SidebarProps) {
 }
 
 export function AppShell() {
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const pageTitle = pageTitles[location.pathname] ?? 'TaskFlow';
+
+  if (!user) return null;
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    await logout();
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
-        <Sidebar />
+        <Sidebar user={user} isLoggingOut={isLoggingOut} onLogout={() => void handleLogout()} />
       </aside>
 
       {isMenuOpen && (
@@ -121,7 +149,12 @@ export function AppShell() {
             >
               <X size={18} />
             </button>
-            <Sidebar onNavigate={() => setIsMenuOpen(false)} />
+            <Sidebar
+              user={user}
+              isLoggingOut={isLoggingOut}
+              onLogout={() => void handleLogout()}
+              onNavigate={() => setIsMenuOpen(false)}
+            />
           </aside>
         </div>
       )}
@@ -148,8 +181,8 @@ export function AppShell() {
             </button>
             <div className="hidden h-8 w-px bg-slate-200 sm:block" />
             <div className="hidden items-center gap-2.5 sm:flex">
-              <Avatar name="Nathan" initials="NS" size="sm" />
-              <span className="text-xs font-semibold text-slate-700">Nathan</span>
+              <Avatar name={user.name} initials={user.avatar} size="sm" />
+              <span className="text-xs font-semibold text-slate-700">{user.name}</span>
             </div>
           </div>
         </header>

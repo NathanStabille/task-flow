@@ -5,4 +5,3 @@ export function notFound(request: Request, response: Response) {
     message: `Rota ${request.method} ${request.originalUrl} não encontrada.`,
   });
 }
-
