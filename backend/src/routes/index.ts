@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { listActivities } from '../controllers/activity-controller.js';
 import { requireAuth } from '../middleware/require-auth.js';
-import { listUsers } from '../controllers/user-controller.js';
 import { authRouter } from './auth-routes.js';
 import { projectRouter } from './project-routes.js';
 import { taskRouter } from './task-routes.js';
+import { userRouter } from './user-routes.js';
 
 export const apiRouter = Router();
 
@@ -15,5 +15,5 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use(requireAuth);
 apiRouter.use('/projects', projectRouter);
 apiRouter.use('/tasks', taskRouter);
-apiRouter.get('/users', listUsers);
+apiRouter.use('/users', userRouter);
 apiRouter.get('/activities', listActivities);

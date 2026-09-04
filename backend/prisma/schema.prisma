@@ -13,6 +13,7 @@ model User {
   email        String   @unique
   passwordHash String
   avatar       String?
+  role         String   @default("MEMBER")
   createdAt    DateTime @default(now())
   tasks        Task[]
 }

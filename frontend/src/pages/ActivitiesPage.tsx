@@ -26,6 +26,7 @@ const categoryOptions: Array<{ value: CategoryFilter; label: string }> = [
   { value: 'TASK', label: 'Tarefas' },
   { value: 'STATUS', label: 'Mudanças de status' },
   { value: 'ASSIGNMENT', label: 'Responsáveis' },
+  { value: 'USER', label: 'Usuários' },
 ];
 
 const periodOptions: Array<{ value: PeriodFilter; label: string }> = [

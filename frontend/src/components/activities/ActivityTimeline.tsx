@@ -20,6 +20,7 @@ const categoryLabels: Record<ActivityCategory, string> = {
   TASK: 'Tarefa',
   STATUS: 'Status',
   ASSIGNMENT: 'Responsável',
+  USER: 'Usuário',
 };
 
 function dateKey(value: string): string {

@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { AdminRoute } from './auth/AdminRoute';
 import { AuthProvider } from './auth/AuthProvider';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
@@ -8,6 +9,7 @@ import { KanbanPage } from './pages/KanbanPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { TasksPage } from './pages/TasksPage';
+import { UsersPage } from './pages/UsersPage';
 
 const router = createBrowserRouter([
   {
@@ -25,6 +27,10 @@ const router = createBrowserRouter([
           { path: '/tarefas', element: <TasksPage /> },
           { path: '/kanban', element: <KanbanPage /> },
           { path: '/atividades', element: <ActivitiesPage /> },
+          {
+            element: <AdminRoute />,
+            children: [{ path: '/usuarios', element: <UsersPage /> }],
+          },
         ],
       },
     ],

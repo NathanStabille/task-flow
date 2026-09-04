@@ -6,6 +6,7 @@ import {
   createSessionToken,
   verifyPassword,
 } from '../services/auth-service.js';
+import type { UserRole } from '../types/domain.js';
 import { authenticatedUser } from '../utils/authenticated-user.js';
 import { HttpError } from '../utils/http-error.js';
 import { requiredText } from '../utils/validation.js';
@@ -31,6 +32,7 @@ export async function login(request: Request, response: Response) {
     name: user.name,
     email: user.email,
     avatar: user.avatar,
+    role: user.role as UserRole,
   };
 
   response.cookie(AUTH_COOKIE_NAME, createSessionToken(user.id), {

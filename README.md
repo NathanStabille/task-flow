@@ -37,6 +37,8 @@ Frontend → Route → Controller → Prisma → SQLite
 - Associação de usuários fictícios às tarefas.
 - Autenticação por email e senha com sessão expirada automaticamente.
 - Proteção das rotas da API com JWT armazenado em cookie `HttpOnly`.
+- Perfis de acesso `ADMIN` e `MEMBER` com autorização validada no backend.
+- Gerenciamento administrativo da equipe, incluindo cadastro, edição e exclusão de usuários.
 - Quadro Kanban com alteração de status entre `TODO`, `IN_PROGRESS` e `DONE`.
 - Registro automático de criação, edição, exclusão, atribuição e mudança de status.
 - Histórico de atividades com busca, categorias e filtro por período.
@@ -141,7 +143,7 @@ A aplicação ficará disponível em `http://localhost:5173`.
 
 ### Dados de demonstração
 
-O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entre diferentes status e prioridades. Todas as contas de demonstração usam a senha `TaskFlow123!`.
+O seed inclui quatro usuários, três projetos e seis tarefas distribuídas entre diferentes status e prioridades. Nathan possui o perfil de administrador e as demais contas são membros. Todas as contas de demonstração usam a senha `TaskFlow123!`.
 
 Para entrar como Nathan:
 
@@ -185,7 +187,7 @@ Em produção, `JWT_SECRET` é obrigatório e deve receber um valor longo, aleat
 | `GET`  | `/api/auth/me`     | Retorna o usuário autenticado       |
 | `POST` | `/api/auth/logout` | Encerra e remove a sessão           |
 
-As rotas de projetos, tarefas, usuários e atividades exigem uma sessão autenticada. O frontend envia o cookie automaticamente com `credentials: include`.
+As rotas de projetos, tarefas, usuários e atividades exigem uma sessão autenticada. O frontend envia o cookie automaticamente com `credentials: include`. Operações de gerenciamento de usuários exigem o perfil `ADMIN`; a listagem permanece disponível aos membros para atribuição de responsáveis.
 
 ### Projetos
 
@@ -208,11 +210,22 @@ As rotas de projetos, tarefas, usuários e atividades exigem uma sessão autenti
 | `PUT`    | `/api/tasks/:id`           | Atualiza uma tarefa           |
 | `DELETE` | `/api/tasks/:id`           | Exclui uma tarefa             |
 
-### Usuários e atividades
+### Usuários
+
+| Método   | Endpoint         | Perfil exigido | Descrição                       |
+| -------- | ---------------- | -------------- | ------------------------------- |
+| `GET`    | `/api/users`     | Autenticado    | Lista os usuários do workspace  |
+| `GET`    | `/api/users/:id` | Administrador  | Retorna os dados de um usuário  |
+| `POST`   | `/api/users`     | Administrador  | Cadastra um usuário             |
+| `PUT`    | `/api/users/:id` | Administrador  | Atualiza dados, perfil ou senha |
+| `DELETE` | `/api/users/:id` | Administrador  | Remove um usuário               |
+
+O sistema impede a exclusão da própria conta administrativa e mantém pelo menos um administrador. Quando um usuário é removido, suas tarefas continuam no sistema e ficam sem responsável.
+
+### Atividades
 
 | Método | Endpoint                   | Descrição                                  |
 | ------ | -------------------------- | ------------------------------------------ |
-| `GET`  | `/api/users`               | Lista os responsáveis disponíveis          |
 | `GET`  | `/api/activities`          | Lista as atividades mais recentes          |
 | `GET`  | `/api/activities?limit=20` | Limita o resultado entre 1 e 100 registros |
 
@@ -292,6 +305,7 @@ Exemplo de payload:
 - Alteração de status no Kanban por seletor, mantendo o primeiro MVP simples e acessível.
 - Senhas armazenadas somente como hashes bcrypt.
 - JWT com expiração de oito horas armazenado em cookie inacessível ao JavaScript.
+- Autorização por perfil aplicada na API, independentemente da visibilidade dos controles no frontend.
 - Logs de atividade associados ao nome do usuário autenticado.
 
 ## Aprendizados
@@ -306,7 +320,7 @@ Exemplo de payload:
 
 ## Próximas evoluções
 
-- Cadastro de usuários, recuperação de senha e autorização por perfil.
+- Recuperação e redefinição de senha.
 - Drag and drop no quadro Kanban.
 - Paginação e filtros processados pelo backend.
 - Migração do SQLite para PostgreSQL em produção.

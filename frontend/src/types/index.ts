@@ -1,12 +1,14 @@
 export type ProjectStatus = 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type UserRole = 'ADMIN' | 'MEMBER';
 
 export interface AuthUser {
   id: number;
   name: string;
   email: string;
   avatar: string | null;
+  role: UserRole;
 }
 
 export interface User {
@@ -14,7 +16,16 @@ export interface User {
   name: string;
   email: string;
   avatar: string | null;
+  role: UserRole;
   createdAt: string;
+}
+
+export interface UserInput {
+  name: string;
+  email: string;
+  avatar: string;
+  role: UserRole;
+  password?: string;
 }
 
 export interface Project {

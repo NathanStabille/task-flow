@@ -22,6 +22,27 @@ export function requiredText(value: unknown, fieldName: string): string {
   return value.trim();
 }
 
+export function emailValue(value: unknown): string {
+  const email = requiredText(value, 'email').toLocaleLowerCase('pt-BR');
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailPattern.test(email)) {
+    throw new HttpError(400, 'Informe um email válido.');
+  }
+
+  return email;
+}
+
+export function passwordValue(value: unknown): string {
+  const password = requiredText(value, 'password');
+
+  if (password.length < 8) {
+    throw new HttpError(400, 'A senha deve ter pelo menos 8 caracteres.');
+  }
+
+  return password;
+}
+
 export function optionalText(value: unknown): string | undefined {
   if (value === undefined) return undefined;
   if (typeof value !== 'string') {

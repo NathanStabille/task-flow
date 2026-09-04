@@ -6,6 +6,7 @@ import {
   Pencil,
   Trash2,
   UserRoundCheck,
+  UserRoundCog,
 } from 'lucide-react';
 
 interface ActivityIconProps {
@@ -18,7 +19,10 @@ export function ActivityIcon({ description }: ActivityIconProps) {
   let Icon = CircleDot;
   let style = 'bg-indigo-50 text-indigo-600';
 
-  if (text.includes('excluiu')) {
+  if (text.includes('usuário')) {
+    Icon = UserRoundCog;
+    style = 'bg-cyan-50 text-cyan-700';
+  } else if (text.includes('excluiu')) {
     Icon = Trash2;
     style = 'bg-rose-50 text-rose-600';
   } else if (text.includes('conclu')) {

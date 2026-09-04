@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   LogOut,
   Menu,
+  UsersRound,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -22,6 +23,7 @@ const navigation = [
   { label: 'Tarefas', path: '/tarefas', icon: ListTodo },
   { label: 'Kanban', path: '/kanban', icon: Columns3 },
   { label: 'Atividades', path: '/atividades', icon: History },
+  { label: 'Usuários', path: '/usuarios', icon: UsersRound, adminOnly: true },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -30,6 +32,7 @@ const pageTitles: Record<string, string> = {
   '/tarefas': 'Tarefas',
   '/kanban': 'Kanban',
   '/atividades': 'Atividades',
+  '/usuarios': 'Equipe e acessos',
 };
 
 interface SidebarProps {
@@ -56,33 +59,35 @@ function Sidebar({ user, isLoggingOut, onLogout, onNavigate }: SidebarProps) {
         <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600">
           Menu principal
         </p>
-        {navigation.map(({ label, path, icon: Icon }) => (
-          <NavLink
-            key={path}
-            to={path}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/10 text-white'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Icon
-                  aria-hidden="true"
-                  size={18}
-                  className={
-                    isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'
-                  }
-                />
-                {label}
-              </>
-            )}
-          </NavLink>
-        ))}
+        {navigation
+          .filter((item) => !item.adminOnly || user.role === 'ADMIN')
+          .map(({ label, path, icon: Icon }) => (
+            <NavLink
+              key={path}
+              to={path}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-white/10 text-white'
+                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    aria-hidden="true"
+                    size={18}
+                    className={
+                      isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'
+                    }
+                  />
+                  {label}
+                </>
+              )}
+            </NavLink>
+          ))}
       </nav>
 
       <div className="mt-auto rounded-2xl border border-white/5 bg-white/[0.03] p-3">
@@ -91,6 +96,9 @@ function Sidebar({ user, isLoggingOut, onLogout, onNavigate }: SidebarProps) {
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold text-slate-100">{user.name}</p>
             <p className="truncate text-[10px] text-slate-500">{user.email}</p>
+            <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-indigo-400">
+              {user.role === 'ADMIN' ? 'Administrador' : 'Membro'}
+            </p>
           </div>
           <button
             type="button"

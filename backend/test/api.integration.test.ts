@@ -41,13 +41,14 @@ async function resetDatabase() {
   await prisma.user.deleteMany();
 }
 
-async function createAuthenticatedAgent() {
+async function createAuthenticatedAgent(role: 'ADMIN' | 'MEMBER' = 'ADMIN') {
   const user = await prisma.user.create({
     data: {
       name: 'Test Admin',
       email: 'admin@test.dev',
       passwordHash: testPasswordHash,
       avatar: 'TA',
+      role,
     },
   });
   const agent = request.agent(app);
@@ -83,6 +84,7 @@ describe('TaskFlow API', { concurrency: false }, () => {
         email: 'admin@test.dev',
         passwordHash: testPasswordHash,
         avatar: 'TA',
+        role: 'ADMIN',
       },
     });
 
@@ -102,6 +104,7 @@ describe('TaskFlow API', { concurrency: false }, () => {
       .expect(200);
 
     assert.equal(loginResponse.body.user.email, 'admin@test.dev');
+    assert.equal(loginResponse.body.user.role, 'ADMIN');
     assert.equal('passwordHash' in loginResponse.body.user, false);
     const sessionCookie = loginResponse.headers['set-cookie']?.[0] ?? '';
     assert.match(sessionCookie, /taskflow_session=/);
@@ -215,6 +218,114 @@ describe('TaskFlow API', { concurrency: false }, () => {
     assert.equal(
       response.body.some((user: object) => 'passwordHash' in user),
       false,
+    );
+    assert.deepEqual(
+      response.body.map((user: { role: string }) => user.role),
+      ['MEMBER', 'MEMBER', 'ADMIN'],
+    );
+  });
+
+  it('restricts user management to administrators', async () => {
+    const { agent } = await createAuthenticatedAgent('MEMBER');
+
+    await agent.get('/api/users').expect(200);
+
+    const forbiddenResponse = await agent
+      .post('/api/users')
+      .send({
+        name: 'Novo usuário',
+        email: 'novo@test.dev',
+        password: testPassword,
+      })
+      .expect(403);
+
+    assert.equal(
+      forbiddenResponse.body.message,
+      'Você não tem permissão para realizar esta ação.',
+    );
+  });
+
+  it('creates, reads, updates and deletes workspace users safely', async () => {
+    const { agent, user: admin } = await createAuthenticatedAgent();
+
+    const shortPasswordResponse = await agent
+      .post('/api/users')
+      .send({ name: 'Maria Oliveira', email: 'maria@test.dev', password: 'curta' })
+      .expect(400);
+    assert.equal(shortPasswordResponse.body.message, 'A senha deve ter pelo menos 8 caracteres.');
+
+    const createResponse = await agent
+      .post('/api/users')
+      .send({
+        name: 'Maria Oliveira',
+        email: 'MARIA@TEST.DEV',
+        password: testPassword,
+        avatar: 'MO',
+        role: 'MEMBER',
+      })
+      .expect(201);
+
+    const userId = Number(createResponse.body.id);
+    assert.ok(userId > 0);
+    assert.equal(createResponse.body.email, 'maria@test.dev');
+    assert.equal(createResponse.body.role, 'MEMBER');
+    assert.equal('passwordHash' in createResponse.body, false);
+
+    const duplicateResponse = await agent
+      .post('/api/users')
+      .send({
+        name: 'Outra Maria',
+        email: 'maria@test.dev',
+        password: testPassword,
+      })
+      .expect(409);
+    assert.equal(duplicateResponse.body.message, 'Já existe um usuário com este email.');
+
+    const detailsResponse = await agent.get(`/api/users/${userId}`).expect(200);
+    assert.equal(detailsResponse.body.name, 'Maria Oliveira');
+
+    const newPassword = 'SenhaNova123!';
+    const updateResponse = await agent
+      .put(`/api/users/${userId}`)
+      .send({ name: 'Maria Souza', password: newPassword })
+      .expect(200);
+    assert.equal(updateResponse.body.name, 'Maria Souza');
+
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'maria@test.dev', password: newPassword })
+      .expect(200);
+
+    const project = await prisma.project.create({ data: { name: 'Projeto da Maria' } });
+    const task = await prisma.task.create({
+      data: { title: 'Tarefa atribuída', projectId: project.id, assigneeId: userId },
+    });
+
+    await agent.delete(`/api/users/${userId}`).expect(204);
+
+    const taskAfterDeletion = await prisma.task.findUnique({ where: { id: task.id } });
+    assert.equal(taskAfterDeletion?.assigneeId, null);
+
+    const selfRoleResponse = await agent
+      .put(`/api/users/${admin.id}`)
+      .send({ role: 'MEMBER' })
+      .expect(400);
+    assert.equal(
+      selfRoleResponse.body.message,
+      'Você não pode alterar o perfil da própria conta.',
+    );
+
+    const selfDeleteResponse = await agent.delete(`/api/users/${admin.id}`).expect(400);
+    assert.equal(selfDeleteResponse.body.message, 'Você não pode excluir a própria conta.');
+
+    const activities = await prisma.activity.findMany({ orderBy: { id: 'asc' } });
+    assert.deepEqual(
+      activities.map((activity) => activity.description),
+      [
+        'Test Admin criou o usuário Maria Oliveira',
+        'Test Admin atualizou o usuário Maria Souza',
+        'Test Admin excluiu o usuário Maria Souza',
+      ],
     );
   });
 

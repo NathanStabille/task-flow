@@ -11,16 +11,40 @@ async function main() {
 
   const [nathan, ana, carlos, joao] = await Promise.all([
     prisma.user.create({
-      data: { name: 'Nathan', email: 'nathan@taskflow.dev', passwordHash, avatar: 'NA' },
+      data: {
+        name: 'Nathan',
+        email: 'nathan@taskflow.dev',
+        passwordHash,
+        avatar: 'NA',
+        role: 'ADMIN',
+      },
     }),
     prisma.user.create({
-      data: { name: 'Ana Souza', email: 'ana@taskflow.dev', passwordHash, avatar: 'AS' },
+      data: {
+        name: 'Ana Souza',
+        email: 'ana@taskflow.dev',
+        passwordHash,
+        avatar: 'AS',
+        role: 'MEMBER',
+      },
     }),
     prisma.user.create({
-      data: { name: 'Carlos Lima', email: 'carlos@taskflow.dev', passwordHash, avatar: 'CL' },
+      data: {
+        name: 'Carlos Lima',
+        email: 'carlos@taskflow.dev',
+        passwordHash,
+        avatar: 'CL',
+        role: 'MEMBER',
+      },
     }),
     prisma.user.create({
-      data: { name: 'João Silva', email: 'joao@taskflow.dev', passwordHash, avatar: 'JS' },
+      data: {
+        name: 'João Silva',
+        email: 'joao@taskflow.dev',
+        passwordHash,
+        avatar: 'JS',
+        role: 'MEMBER',
+      },
     }),
   ]);
 
